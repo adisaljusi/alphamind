@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+.mypy_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Data
+backend/data/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
