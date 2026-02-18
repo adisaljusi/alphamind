@@ -86,7 +86,7 @@ async def run_simulation(
         tickers=tickers or [],
         agent_ids=[c.id for c in agent_configs],
     )
-    save_simulation(result)
+    await save_simulation(result)
 
     try:
         snapshots = generate_mock_data(tickers, effective_start, effective_end)
@@ -106,5 +106,5 @@ async def run_simulation(
         result.status = SimulationStatus.FAILED
         result.error = str(e)
 
-    save_simulation(result)
+    await save_simulation(result)
     return result

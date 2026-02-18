@@ -1,32 +1,45 @@
-"""FastAPI application entry point."""
+"""Litestar application entry point."""
+
+from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from litestar import Litestar
+from litestar.config.cors import CORSConfig
 
-from trading_sim.api.routes import router
+from trading_sim.api.routes import AgentController, SimulationController
+from trading_sim.db.engine import close_db, init_db
+from trading_sim.settings import get_cors_origins
+from trading_sim.telemetry import setup_telemetry
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
-app = FastAPI(
-    title="AI Trading Simulation",
-    description="Multi-agent AI trading simulation platform",
-    version="0.1.0",
-)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@asynccontextmanager
+async def lifespan(app: Litestar) -> AsyncGenerator[None, None]:
+    setup_telemetry()
+    await init_db()
+    yield
+    await close_db()
 
-app.include_router(router, prefix="/api")
+
+app = Litestar(
+    route_handlers=[AgentController, SimulationController],
+    path="/api",
+    cors_config=CORSConfig(
+        allow_origins=get_cors_origins(),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    ),
+    lifespan=[lifespan],
+    debug=False,
+)
 
 
 if __name__ == "__main__":
